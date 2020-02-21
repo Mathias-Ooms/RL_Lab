@@ -7,7 +7,7 @@ An example can be seen on the Bandit_Agent and Random_Agent classes.
 """
 # -*- coding: utf-8 -*-
 import numpy as np
-from utils import softmax, my_random_choice
+from bandits.utils import softmax, my_random_choice
 
 class Bandit_Agent(object):
     """
@@ -15,7 +15,7 @@ class Bandit_Agent(object):
 
     Contains the methods learn() and act() for the base life cycle of an agent.
     The reset() method reinitializes the agent.
-    The minimum requirment to instantiate a child class of Bandit_Agent
+    The minimum requirement to instantiate a child class of Bandit_Agent
     is that it implements the act() method (see Random_Agent).
     """
     def __init__(self, k:int, **kwargs):

@@ -5,9 +5,9 @@ Complete the code wherever TODO is written.
 """
 # -*- coding: utf-8 -*-
 import numpy as np
-from utils import *
-from agents import *
-from bandit import *
+from bandits.utils import *
+from bandits.agents import *
+from bandits.bandit import *
 
 ## FUNCTIONS ===================================================================
 
@@ -35,6 +35,29 @@ def run_bandit(agent, kbandit, max_steps) -> (np.array, np.array):
                 of ones and zeros rather than actual booleans.
     """
     # TODO: implement this function.
+    kbandit.reset()
+    agent.reset()
+    perf = []
+    rewards = []
+    for i in range(len(kbandit.bandits)):
+        perf.append([])
+    best_action = []
+
+    for i in range(max_steps):
+        k = agent.act()
+        reward = kbandit.pull(k)
+        perf.append(reward)
+        rewards[k].append(reward)
+        agent.learn(k, reward)
+        best_action.append(0)
+
+    for i in range(perf):
+        rewards = perf[i]
+        mean = sum(rewards)/len(rewards)
+        perf[i] = mean
+
+    best_action[best_action.index(max(perf))] = 1
+
     return perf, best_action
 
 def run_multiple_bandits(n_runs, **kwargs) -> (np.array, np.array):
