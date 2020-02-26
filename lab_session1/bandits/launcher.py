@@ -38,25 +38,17 @@ def run_bandit(agent, kbandit, max_steps) -> (np.array, np.array):
     kbandit.reset()
     agent.reset()
     perf = []
-    rewards = []
-    for i in range(len(kbandit.bandits)):
-        perf.append([])
     best_action = []
 
     for i in range(max_steps):
         k = agent.act()
         reward = kbandit.pull(k)
         perf.append(reward)
-        rewards[k].append(reward)
         agent.learn(k, reward)
-        best_action.append(0)
-
-    for i in range(perf):
-        rewards = perf[i]
-        mean = sum(rewards)/len(rewards)
-        perf[i] = mean
-
-    best_action[best_action.index(max(perf))] = 1
+        if k == kbandit.best_action:
+            best_action.append(1)
+        else:
+            best_action.append(0)
 
     return perf, best_action
 
@@ -176,14 +168,14 @@ if launch_type == 'multiple_agents':
     perfs, best_actions = run_multiple_agents(agents, kbandit=kbandit, n_runs=n_runs, max_steps=max_steps)
     # You can change the labels, title and file_name
     labels = ['Random', 'EpsGreedy', 'EpsGreedySA', 'Optimistic', 'Gradient', 'UCB']
-    file_name = 'plots/agent_comparison'
+    file_name = '../plots/agent_comparison'
     suptitle = 'Agent comparison on k-armed-Bandit'
 
 elif launch_type == 'spectrum':
     agent = UCB(**config)
     spectrum =  ['c', [0.25,0.5,1,2]]
     # finally, running:
-    perfs, best_actions = run_spectrum(spectrum, agent=agent, kbandit=kbandit, n_runs=n_runs, max_steps=max_steps
+    perfs, best_actions = run_spectrum(spectrum, agent=agent, kbandit=kbandit, n_runs=n_runs, max_steps=max_steps)
     # You can change the labels, title and file_name
     labels = ['{}={}'.format(spectrum[0], value) for value in spectrum[1]]
     file_name = 'plots/{}_study'.format(spectrum[0])
