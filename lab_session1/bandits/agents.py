@@ -203,7 +203,8 @@ class Gradient_Bandit(Bandit_Agent):
         keys = [i for i in range(self.k)]
         self.n = {key: 1 for key in keys}
         self.a = {key: 0 for key in keys}
-        self.h = {key: 0 for key in keys}
+        self.h = {key: 1.0/10.0 for key in keys}
+        self.pi = {}
         self.t = 1
         self.eps = eps
         self.sum = 0
@@ -216,13 +217,15 @@ class Gradient_Bandit(Bandit_Agent):
         ln = np.log(self.t)
         self.sum += r
         AVG = self.sum / self.t
-        self.a[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
-        self.h[a] = self.h[a] - self.alpha * (r - AVG) * softmax(a)
+        #self.a[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
+        for i in range(self.k):
+            if i != a:
+                self.h[a] = self.h[a] - self.alpha * (r - AVG) * softmax(a)
+            else:
+                self.h[a] = self.h[a] - self.alpha * (r - AVG) *(1-softmax(a))
         self.t += 1
         self.n[a] += 1
 
+
     def act(self) -> int: #softmax
-        for a in range(self.k):
-            ln = np.log(self.t)
-            self.a[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
-        return max(self.a, key=self.a.get)
+        return my_random_choice(self.k, list(self.pi.values()))
