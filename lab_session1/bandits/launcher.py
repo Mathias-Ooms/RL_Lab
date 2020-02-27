@@ -5,9 +5,9 @@ Complete the code wherever TODO is written.
 """
 # -*- coding: utf-8 -*-
 import numpy as np
-from bandits.utils import *
-from bandits.agents import *
-from bandits.bandit import *
+from utils import *
+from agents import *
+from bandit import *
 
 ## FUNCTIONS ===================================================================
 
