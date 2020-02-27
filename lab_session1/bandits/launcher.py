@@ -158,12 +158,12 @@ launch_type = 'multiple_agents'
 
 if launch_type == 'multiple_agents':
     agents = [
-        # Random_Agent(**config),
-        # EpsGreedy(**config),
-        # EpsGreedy_SampleAverage(**config),
-        # OptimisticGreedy(**config),
+        Random_Agent(**config),
+        EpsGreedy(**config),
+        EpsGreedy_SampleAverage(**config),
+        OptimisticGreedy(**config),
         Gradient_Bandit(**config),
-        #UCB(**config)
+        UCB(**config)
     ]
     perfs, best_actions = run_multiple_agents(agents, kbandit=kbandit, n_runs=n_runs, max_steps=max_steps)
     # You can change the labels, title and file_name

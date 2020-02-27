@@ -85,11 +85,11 @@ class Random_Agent(Bandit_Agent):
 class EpsGreedy_SampleAverage(Bandit_Agent):
     # TODO: implement this class following the formalism above.
     # This class uses Sample Averages to estimate q; others are non stationary.
-    def __init__(self, k: int, lr: float, alpha: float, eps: float, c: float, q0: float, **kwargs):
-        self.k = k
+    def __init__(self, k: int, eps: float, **kwargs):
+        super(EpsGreedy_SampleAverage, self).__init__(k, **kwargs)
         keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
-        self.n = {key: 1 for key in keys}
+        self.q = {key: 0 for key in keys} #q-values
+        self.n = {key: 1 for key in keys} #number of times action chosen
         self.eps = eps
 
     def reset(self):
@@ -101,94 +101,67 @@ class EpsGreedy_SampleAverage(Bandit_Agent):
         self.q[a] = self.q[a] + (1.0 / self.n[a]) * (r - self.q[a])
         self.n[a] += 1
 
+
     def act(self) -> int:
         # random = np.random.randint(low=0, high=100)
         random = np.random.random_sample()
         if self.eps > random:
-            return np.random.randint(low=0, high=7)
+            return np.random.randint(low=0, high=10)
         else:
             return max(self.q, key=self.q.get)
 
 
-class EpsGreedy(Bandit_Agent):
+class EpsGreedy(EpsGreedy_SampleAverage):
     # TODO: implement this class following the formalism above.
     # Non stationary agent with q estimating and eps-greedy action selection.
-    def __init__(self, k: int, lr: float, alpha: float, eps: float, c: float, q0: float, **kwargs):
-        self.k = k
-        keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
-        self.eps = eps
+    def __init__(self, k: int, eps: float, lr: float, **kwargs):
+        super(EpsGreedy, self).__init__(k, eps, **kwargs)
         self.lr = lr
-
-    def reset(self):
-        keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
 
     def learn(self, a: int, r: float):
         self.q[a] = self.q[a] + self.lr * (r - self.q[a])
 
-    def act(self) -> int:
-        # random = np.random.randint(low=0, high=100)
-        random = np.random.random_sample()
-        if self.eps > random:
-            return np.random.randint(low=0, high=7)
-        else:
-            return max(self.q, key=self.q.get)
 
-
-class OptimisticGreedy(Bandit_Agent):
+class OptimisticGreedy(EpsGreedy):
     # TODO: implement this class following the formalism above.
     # Same as above but with optimistic starting values.
-    def __init__(self, k: int, lr: float, alpha: float, eps: float, c: float, q0: float, **kwargs):
-        self.k = k
+    def __init__(self, k: int, eps: float, lr: float, q0: float, **kwargs):
+        super(OptimisticGreedy, self).__init__(k, eps, lr, **kwargs)
+        self.q0 = q0
         keys = [i for i in range(self.k)]
-        self.q = {key: q0 for key in keys}
-        self.eps = 0
-        self.lr = lr
+        self.q = {key: self.q0 for key in keys} #initialise q-values
 
     def reset(self):
         keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
-
-    def learn(self, a: int, r: float):
-        self.q[a] = self.q[a] + self.lr * (r - self.q[a])
-
-    def act(self) -> int:
-        # random = np.random.randint(low=0, high=100)
-        random = np.random.random_sample()
-        if self.eps > random:
-            return np.random.randint(low=0, high=7)
-        else:
-            return max(self.q, key=self.q.get)
+        self.q = {key: self.q0 for key in keys}
 
 
-class UCB(Bandit_Agent):
+class UCB(EpsGreedy_SampleAverage):
     # TODO: implement this class following the formalism above.
-    def __init__(self, k: int, lr: float, alpha: float, eps: float, c: float, q0: float, **kwargs):
-        self.k = k
+    def __init__(self, k: int, eps: float, c: float, **kwargs):
+        super(UCB, self).__init__(k, eps, **kwargs) #uses q-function of sample average
         self.c = c
         keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
-        self.n = {key: 1 for key in keys}
-        self.a = {key: 0 for key in keys}
+        self.A = {key: 0 for key in keys} #At
         self.t = 1
-        self.eps = eps
 
     def reset(self):
+        super(UCB, self).reset()
         keys = [i for i in range(self.k)]
-        self.q = {key: 0 for key in keys}
-        self.n = {key: 1 for key in keys}
+        self.A = {key: 0 for key in keys} #At
+        self.t = 1
 
     def learn(self, a: int, r: float):
-        self.q[a] = self.q[a] + (1.0 / self.n[a]) * (r - self.q[a])
-        self.t += 1
-        self.n[a] += 1
-
-    def act(self) -> int:
+        super(UCB, self).learn(a, r)
+        #update all action values
         for a in range(self.k):
             ln = np.log(self.t)
-            self.a[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
-        return max(self.a, key=self.a.get)
+            self.A[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
+
+        self.t += 1
+
+    def act(self) -> int:
+        return max(self.A, key=self.A.get)
 
 
 class Gradient_Bandit(Bandit_Agent):
@@ -196,36 +169,37 @@ class Gradient_Bandit(Bandit_Agent):
     # If you want this to run fast, use the my_random_choice function from
     # utils instead of np.random.choice to sample from the softmax
     # You can also find the softmax function in utils.
-    def __init__(self, k: int, lr: float, alpha: float, eps: float, c: float, q0: float, **kwargs):
-        self.k = k
-        self.c = c
+    def __init__(self, k: int, alpha: float, **kwargs):
+        super(Gradient_Bandit, self).__init__(k, **kwargs)
         self.alpha = alpha
         keys = [i for i in range(self.k)]
-        self.n = {key: 1 for key in keys}
-        self.a = {key: 0 for key in keys}
-        self.h = {key: 1.0/10.0 for key in keys}
-        self.pi = {}
-        self.t = 1
-        self.eps = eps
+        self.h = {key: 1.0/self.k for key in keys}
         self.sum = 0
+        self.AVG = 0
+        self.t = 0
 
     def reset(self):
+        super(Gradient_Bandit, self).reset()
         keys = [i for i in range(self.k)]
-        self.n = {key: 1 for key in keys}
+        self.h = {key: 1.0/self.k for key in keys}
+        self.sum = 0
+        self.AVG = 0
+        self.t = 0
 
     def learn(self, a: int, r: float): #H-functies a->A
-        ln = np.log(self.t)
+        # keep average of all rewards
         self.sum += r
-        AVG = self.sum / self.t
-        #self.a[a] = self.q[a] + (self.c * np.sqrt(ln / self.n[a]))
-        for i in range(self.k):
-            if i != a:
-                self.h[a] = self.h[a] - self.alpha * (r - AVG) * softmax(a)
-            else:
-                self.h[a] = self.h[a] - self.alpha * (r - AVG) *(1-softmax(a))
         self.t += 1
-        self.n[a] += 1
+        self.AVG = self.sum / self.t
 
+        At = a #max(self.A, key=self.A.get)
 
-    def act(self) -> int: #softmax
-        return my_random_choice(self.k, list(self.pi.values()))
+        for i in range(self.k):
+            if i == At:
+                self.h[i] = self.h[i] + (self.alpha * (r - self.AVG) * (1-softmax(list(self.h.values()))[a]))
+            else:
+                self.h[i] = self.h[i] - (self.alpha * (r - self.AVG) * softmax(list(self.h.values()))[a])
+        return
+
+    def act(self) -> int:
+        return my_random_choice(self.k, softmax(list(self.h.values())))
