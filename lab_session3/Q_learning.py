@@ -30,6 +30,7 @@ state_size = env.observation_space.n
 
 qtable = np.zeros((state_size, action_size), dtype=np.float)
 
+
 class Agent(object):
     """
     Class declaring the agent. the qtable although handelled
@@ -46,13 +47,13 @@ class Agent(object):
         """
         self.qtable = qtable
         self.learning_rate = 0.1  # Learning rate
-        self.gamma = 0.99  # Discounting rate
+        self.gamma = 0.965  # Discounting rate
 
         # Exploration parameters
         self.epsilon = 1.0  # Exploration rate
         self.max_epsilon = 1.0  # Exploration probability at start
-        self.min_epsilon = 0.01  # Minimum exploration probability
-        self.decay_rate = 0.000001  # Exponential decay rate for exploration prob
+        self.min_epsilon = 0.07  # Minimum exploration probability
+        self.decay_rate = 0.0000001  # Exponential decay rate for exploration prob
 
     def act(self, state, exp_exp_tradeoff):
         """
@@ -75,10 +76,10 @@ class Agent(object):
         # TODO Write code to check if your agent wants to explore or exploit
         action = 0
         if self.epsilon < exp_exp_tradeoff:
-            action = np.argmax(self.qtable[state])
+            action = np.random.choice(np.where(np.amax(self.qtable[state]) == np.amax(self.qtable[state]))[0])
         else:
             action = np.random.randint(0, action_size)
-        #print(action_size)
+        # print(action_size)
         return action
 
     def learn(self, state, action, reward, new_state):
@@ -105,7 +106,7 @@ class Agent(object):
         fromState = self.qtable[state][action]
         maxState = np.max(self.qtable[new_state])
         self.qtable[state][action] = fromState + (
-                    self.learning_rate * (reward + (self.gamma * maxState) - fromState))
+                self.learning_rate * (reward + (self.gamma * maxState) - fromState))
 
     def update_epsilon(self, episode):
         """
@@ -140,8 +141,8 @@ class Trainer(object):
 
         """
         # config of your run.
-        self.total_episodes = 20000  # Total episodes
-        self.max_steps = 699  # Max steps per episode
+        self.total_episodes = 100000  # Total episodes
+        self.max_steps = 100000  # Max steps per episode
 
         # q-table
         self.qtable = qtable
@@ -212,7 +213,8 @@ class Trainer(object):
 
 def test():
     """Function to test your agent."""
-    for episode in range(5):
+    count = 0
+    for episode in range(100):
         state = env.reset()
         print(type(state))
         step = 0
@@ -228,6 +230,7 @@ def test():
             print(reward)
             if done:
                 if reward == 1:
+                    count += 1
                     print('\n \x1b[6;30;42m' + 'Success!' + '\x1b[0m')
                 action = np.argmax(qtable[state, :])
                 print(action)
@@ -235,6 +238,7 @@ def test():
                 break
             state = new_state
     env.close()
+    print(count)
 
 
 if __name__ == '__main__':
