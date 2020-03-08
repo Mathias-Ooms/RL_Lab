@@ -46,7 +46,7 @@ class Agent(object):
         qtable: numpy 2d-array
         """
         self.qtable = qtable
-        self.learning_rate = 0.1  # Learning rate
+        self.learning_rate = 0.0625  # Learning rate
         self.gamma = 0.965  # Discounting rate
 
         # Exploration parameters
@@ -73,7 +73,7 @@ class Agent(object):
         """
         # TODO Write code to check if your agent wants to explore or exploit
         action = 0
-        if self.epsilon < exp_exp_tradeoff:
+        if random.random() > self.epsilon:
             action = np.random.choice(np.where(np.amax(self.qtable[state]) == np.amax(self.qtable[state]))[0])
         else:
             action = np.random.randint(0, action_size)
@@ -140,7 +140,7 @@ class Trainer(object):
         """
         # config of your run.
         self.total_episodes = 100000  # Total episodes
-        self.max_steps = 100000  # Max steps per episode
+        self.max_steps = 10000  # Max steps per episode
 
         # q-table
         self.qtable = qtable

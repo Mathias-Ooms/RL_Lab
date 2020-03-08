@@ -1,0 +1,16 @@
+The learning rate tells us something about how important the new learned information is.
+A high value will almost only use the newest information, while a low value will use this information only for a very small part.
+(see formula: formula_q_learning.png)
+
+Gamma (discount factor) determines the importance of future rewards.
+A high value will make it strive for a high long-term reward, while a low value will only use the most recent rewards.
+(see formula: formula_q_learning.png)
+
+Epsilon determines the explore/exploit ratio, which we want to decrease in the long run with a certain minimum.
+This epsilon-minimum is necessary to let the agent always explore a little in the very end.
+
+The decay rate determines how fast we want to transition from exploration to exploitation.
+
+Each episode is a 'trial-run' for the agent, you need to set it high enough so it will certainly reach convergence for the rewards.
+
+The number of steps from the agent needs to be increased in more difficult environments, to give the agent the chance to do a better exploration of it's environment.
