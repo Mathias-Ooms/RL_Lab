@@ -5,6 +5,27 @@ import QTable
 
 from gym.envs.registration import register
 
+<<<<<<< HEAD
+=======
+def allmax(a):
+    """ Returns all occurences of the max """
+    if len(a) == 0:
+        return []
+    all_ = [0]
+    max_ = a[0]
+    for i in range(1, len(a)):
+        if a[i] > max_:
+            all_ = [i]
+            max_ = a[i]
+        elif a[i] == max_:
+            all_.append(i)
+    return all_
+
+def my_argmax(v):
+    """ Breaks ties randomly. """
+    return random.choice(allmax(v))
+
+>>>>>>> upstream/master
 # code to set a gym config
 # 4x4 environment
 kwargs = {'map_name': '4x4', 'is_slippery': False}
@@ -28,7 +49,11 @@ state_size = env.observation_space.n
 
 # TODO Declare your q-table based on number of states and actions.
 
+<<<<<<< HEAD
 qtable = np.zeros((state_size, action_size), dtype=np.float)
+=======
+qtable = np.zeros((state_size, action_size))
+>>>>>>> upstream/master
 
 
 class Agent(object):
@@ -71,6 +96,7 @@ class Agent(object):
             action to take
 
         """
+<<<<<<< HEAD
         # TODO Write code to check if your agent wants to explore or exploit
         action = 0
         if random.random() > self.epsilon:
@@ -79,6 +105,12 @@ class Agent(object):
             action = np.random.randint(0, action_size)
         # print(action_size)
         return action
+=======
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(action_size)
+        else:
+            return my_argmax(self.qtable[state])
+>>>>>>> upstream/master
 
     def learn(self, state, action, reward, new_state):
         """
@@ -99,12 +131,18 @@ class Agent(object):
             new state after action
 
         """
+<<<<<<< HEAD
         # TODO Write code to update q-table
         # Bellman equation
         fromState = self.qtable[state][action]
         maxState = np.max(self.qtable[new_state])
         self.qtable[state][action] = fromState + (
                 self.learning_rate * (reward + (self.gamma * maxState) - fromState))
+=======
+        self.qtable[state][action] += self.learning_rate * (
+            reward + self.gamma*np.max(self.qtable[new_state]) - self.qtable[state][action]
+        )
+>>>>>>> upstream/master
 
     def update_epsilon(self, episode):
         """
